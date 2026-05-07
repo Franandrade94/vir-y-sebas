@@ -383,7 +383,7 @@ export default function Home() {
           <div className="hero-names">Vir</div>
           <div className="hero-ampersand">&</div>
           <div className="hero-names">
-            <span>Sebas</span>
+            <span>Seba</span>
           </div>
         </div>
         <div className="hero-divider" />
