@@ -121,9 +121,9 @@ body::before {
 
 .hero-eyebrow {
   font-family: var(--font-cinzel), serif;
-  font-size: 1.25rem;
+  font-size: 1.45rem;
   letter-spacing: 0.35em;
-  color: var(--gold);
+  color: var(--dark);
   text-transform: uppercase;
   margin-bottom: 32px;
   opacity: 0;
@@ -135,7 +135,7 @@ body::before {
   font-size: clamp(5rem, 15vw, 11rem);
   font-weight: 300;
   line-height: 0.9;
-  color: var(--dark);
+  color: var(--gold-hero);
   letter-spacing: -0.01em;
 }
 
@@ -149,7 +149,7 @@ body::before {
   font-family: var(--font-cormorant), serif;
   font-size: clamp(2rem, 5vw, 3.5rem);
   font-style: italic;
-  color: var(--mid);
+  color: var(--dark);
   font-weight: 300;
   margin: 8px 0;
   line-height: 1;
@@ -158,7 +158,7 @@ body::before {
 .hero-tagline {
   margin-top: 40px;
   font-family: var(--font-cormorant), serif;
-  font-size: clamp(1rem, 2.5vw, 1.3rem);
+  font-size: clamp(1.15rem, 3vw, 1.55rem);
   font-style: italic;
   color: var(--mid);
   max-width: 480px;
@@ -513,12 +513,21 @@ section.inv-section {
 
 .rsvp-subtitle {
   font-family: var(--font-cormorant), serif;
-  font-size: 1.15rem;
+  font-size: 1.32rem;
   font-style: italic;
   color: var(--mid);
   max-width: 420px;
   margin: 0 auto 48px;
   line-height: 1.7;
+}
+
+.rsvp-please {
+  font-family: inherit;
+  font-style: inherit;
+  color: var(--mid);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .form-grid {
@@ -865,11 +874,10 @@ section.inv-section {
 }
 
 .lightbox.open {
-  display: grid;
-  grid-template-columns: 64px minmax(0, 1fr) 64px;
+  display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 24px;
+  justify-content: center;
+  padding: 0;
   background: transparent;
 }
 
@@ -890,6 +898,9 @@ section.inv-section {
 }
 
 .lightbox-arrow {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
   height: 54px;
   width: 54px;
   border-radius: 999px;
@@ -902,6 +913,14 @@ section.inv-section {
   cursor: pointer;
   transition: background 0.25s, transform 0.25s;
   z-index: 3;
+}
+
+.lightbox-arrow-left {
+  left: 18px;
+}
+
+.lightbox-arrow-right {
+  right: 18px;
 }
 
 @media (max-width: 1024px) {
@@ -927,12 +946,19 @@ section.inv-section {
   }
 
   .lightbox.open {
-    grid-template-columns: 1fr;
+    padding: 0;
+  }
+}
+
+/* /party: en mobile/tablet sin flechas */
+@media (max-width: 1024px) {
+  .party-desktop-only {
+    display: none !important;
   }
 }
 
 .lightbox-arrow:hover {
-  transform: scale(1.03);
+  transform: translateY(-50%) scale(1.03);
 }
 
 .lightbox-viewport {
@@ -941,7 +967,7 @@ section.inv-section {
   user-select: none;
   cursor: grab;
   z-index: 2;
-  width: 100%;
+  width: min(92vw, 1100px);
 }
 
 .lightbox-viewport:active {
@@ -1026,7 +1052,7 @@ section.inv-section {
 
 .gift-text {
   font-family: var(--font-cormorant), serif;
-  font-size: 1.2rem;
+  font-size: 1.45rem;
   font-style: italic;
   color: #c9bba6;
   max-width: 420px;
@@ -1138,7 +1164,7 @@ section.inv-section {
 
 .modal h3 {
   font-family: var(--font-cinzel), serif;
-  font-size: 0.7rem;
+  font-size: 0.9rem;
   letter-spacing: 0.3em;
   color: var(--gold);
   text-transform: uppercase;
@@ -1147,7 +1173,7 @@ section.inv-section {
 
 .modal p {
   font-family: var(--font-cormorant), serif;
-  font-size: 1.1rem;
+  font-size: 1.35rem;
   color: var(--mid);
   font-style: italic;
   line-height: 1.8;
@@ -1164,7 +1190,7 @@ section.inv-section {
   position: absolute;
   top: 16px;
   right: 20px;
-  font-size: 1.2rem;
+  font-size: 1.45rem;
   color: var(--mid);
   cursor: pointer;
   background: none;
@@ -1302,10 +1328,14 @@ section.inv-section {
 }
 
 .party-empty {
+  min-height: 38vh;
+  display: grid;
+  place-items: center;
   text-align: center;
-  padding: 26px 10px;
+  padding: 22px 10px;
   color: var(--mid);
   font-style: italic;
+  background: rgba(245, 240, 232, 0.45);
 }
 
 .party-file-input {

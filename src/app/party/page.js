@@ -35,7 +35,8 @@ export default function PartyPage() {
   const [error, setError] = useState("");
   const [loaded, setLoaded] = useState(() => new Set());
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lbIndex, setLbIndex] = useState(0);
+  const [lbVIndex, setLbVIndex] = useState(1); // índice virtual (loop con clones)
+  const [lbTransitionEnabled, setLbTransitionEnabled] = useState(true);
   const [lbDragging, setLbDragging] = useState(false);
   const [lbStartX, setLbStartX] = useState(0);
   const [lbDeltaX, setLbDeltaX] = useState(0);
@@ -50,8 +51,36 @@ export default function PartyPage() {
     });
 
   const count = gridItems.length;
-  const lbPrev = () => setLbIndex((i) => (count ? (i - 1 + count) % count : 0));
-  const lbNext = () => setLbIndex((i) => (count ? (i + 1) % count : 0));
+  const lbLoopImages = useMemo(() => {
+    if (!count) return [];
+    const last = gridItems[count - 1];
+    const first = gridItems[0];
+    return [last, ...gridItems, first];
+  }, [count, gridItems]);
+
+  const lbPrevLoop = () =>
+    setLbVIndex((v) => {
+      const next = v - 1;
+      return next < 0 ? 0 : next;
+    });
+  const lbNextLoop = () =>
+    setLbVIndex((v) => {
+      const next = v + 1;
+      return next > count + 1 ? count + 1 : next;
+    });
+
+  const onLbTransitionEnd = () => {
+    if (!count) return;
+    if (lbVIndex <= 0) {
+      setLbTransitionEnabled(false);
+      setLbVIndex(count);
+      requestAnimationFrame(() => requestAnimationFrame(() => setLbTransitionEnabled(true)));
+    } else if (lbVIndex >= count + 1) {
+      setLbTransitionEnabled(false);
+      setLbVIndex(1);
+      requestAnimationFrame(() => requestAnimationFrame(() => setLbTransitionEnabled(true)));
+    }
+  };
 
   async function load() {
     setError("");
@@ -70,6 +99,22 @@ export default function PartyPage() {
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    document.body.classList.toggle("no-scroll", lightboxOpen);
+    return () => document.body.classList.remove("no-scroll");
+  }, [lightboxOpen]);
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") setLightboxOpen(false);
+      if (e.key === "ArrowLeft") lbPrevLoop();
+      if (e.key === "ArrowRight") lbNextLoop();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [lightboxOpen, count]);
 
   async function onPickFiles(e) {
     const files = Array.from(e.target.files || []);
@@ -157,13 +202,17 @@ export default function PartyPage() {
                 tabIndex={0}
                 aria-label="Abrir foto"
                 onClick={() => {
-                  setLbIndex(idx);
+                  setLbTransitionEnabled(false);
+                  setLbVIndex(idx + 1);
+                  requestAnimationFrame(() => requestAnimationFrame(() => setLbTransitionEnabled(true)));
                   setLightboxOpen(true);
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    setLbIndex(idx);
+                    setLbTransitionEnabled(false);
+                    setLbVIndex(idx + 1);
+                    requestAnimationFrame(() => requestAnimationFrame(() => setLbTransitionEnabled(true)));
                     setLightboxOpen(true);
                   }
                 }}
@@ -181,6 +230,9 @@ export default function PartyPage() {
                   loading="lazy"
                   onLoad={() => markLoaded(it.id)}
                   onError={() => markLoaded(it.id)}
+                  ref={(el) => {
+                    if (el && el.complete) markLoaded(it.id);
+                  }}
                 />
               </div>
             ))}
@@ -190,6 +242,12 @@ export default function PartyPage() {
 
       <div
         className={`lightbox${lightboxOpen ? " open" : ""}`}
+        style={{
+          display: lightboxOpen ? "flex" : "none",
+          position: "fixed",
+          inset: 0,
+          zIndex: 99999,
+        }}
         role="dialog"
         aria-modal="true"
         aria-label="Galería de fotos"
@@ -204,7 +262,7 @@ export default function PartyPage() {
           ✕
         </button>
 
-        <button className="lightbox-arrow lightbox-arrow-left" type="button" onClick={lbPrev}>
+        <button className="lightbox-arrow lightbox-arrow-left party-desktop-only" type="button" onClick={lbPrevLoop}>
           ‹
         </button>
 
@@ -229,8 +287,8 @@ export default function PartyPage() {
           onPointerUp={() => {
             if (!lbDragging) return;
             const threshold = 40;
-            if (lbDeltaX > threshold) lbPrev();
-            else if (lbDeltaX < -threshold) lbNext();
+            if (lbDeltaX > threshold) lbPrevLoop();
+            else if (lbDeltaX < -threshold) lbNextLoop();
             setLbDragging(false);
             setLbDeltaX(0);
           }}
@@ -241,13 +299,14 @@ export default function PartyPage() {
         >
           <div
             className="lightbox-track"
+            onTransitionEnd={onLbTransitionEnd}
             style={{
-              transform: `translateX(calc(${-lbIndex * 100}% + ${lbDeltaX}px))`,
-              transition: lbDragging ? "none" : undefined,
+              transform: `translateX(calc(${-lbVIndex * 100}% + ${lbDeltaX}px))`,
+              transition: lbTransitionEnabled && !lbDragging ? undefined : "none",
             }}
           >
-            {gridItems.map((it) => (
-              <div className="lightbox-slide" key={`lb-${it.id}`}>
+            {lbLoopImages.map((it, i) => (
+              <div className="lightbox-slide" key={`lb-${it.id}-${i}`}>
                 <div className="carousel-img carousel-img-lightbox">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={it.signedUrl} alt={it.name || "Foto"} />
@@ -257,7 +316,7 @@ export default function PartyPage() {
           </div>
         </div>
 
-        <button className="lightbox-arrow lightbox-arrow-right" type="button" onClick={lbNext}>
+        <button className="lightbox-arrow lightbox-arrow-right party-desktop-only" type="button" onClick={lbNextLoop}>
           ›
         </button>
       </div>

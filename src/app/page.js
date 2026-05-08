@@ -24,28 +24,7 @@ function googleCalendarAddUrl() {
 const GOOGLE_CALENDAR_ADD_URL = googleCalendarAddUrl();
 const APPLE_CALENDAR_ICS_PATH = "/calendar/casamiento-vir-seba-2026.ics";
 
-const GALLERY_IMAGES_FALLBACK = [
-  {
-    src: "https://static.wixstatic.com/media/142a7c_195f727fcf1c4d728b0a13d31ef864b6~mv2.jpeg/v1/fit/w_600,h_800,q_90,enc_avif,quality_auto/142a7c_195f727fcf1c4d728b0a13d31ef864b6~mv2.jpeg",
-    alt: "Vir y Sebas",
-    name: "Vir y Sebas",
-  },
-  {
-    src: "https://static.wixstatic.com/media/142a7c_896ca15ba7ef4b80b96fd2321621a917~mv2.jpeg/v1/fit/w_600,h_800,q_90,enc_avif,quality_auto/142a7c_896ca15ba7ef4b80b96fd2321621a917~mv2.jpeg",
-    alt: "Vir y Sebas",
-    name: "Vir y Sebas",
-  },
-  {
-    src: "https://static.wixstatic.com/media/142a7c_e88469e6b9fb401ab91f03746ef7d944~mv2.jpeg/v1/fit/w_700,h_800,q_90,enc_avif,quality_auto/142a7c_e88469e6b9fb401ab91f03746ef7d944~mv2.jpeg",
-    alt: "Vir y Sebas",
-    name: "Vir y Sebas",
-  },
-  {
-    src: "https://static.wixstatic.com/media/142a7c_c141da00906d433cbcb8eed60e9f4651~mv2.jpeg/v1/fit/w_800,h_740,q_90,enc_avif,quality_auto/142a7c_c141da00906d433cbcb8eed60e9f4651~mv2.jpeg",
-    alt: "Vir y Sebas",
-    name: "Vir y Sebas",
-  },
-];
+const GALLERY_IMAGES_FALLBACK = [];
 
 function pad2(n) {
   return String(n).padStart(2, "0");
@@ -291,6 +270,9 @@ function GalleryCarousel({ images }) {
                     loading="lazy"
                     onLoad={() => markLoaded(img.src)}
                     onError={() => markLoaded(img.src)}
+                    ref={(el) => {
+                      if (el && el.complete) markLoaded(img.src);
+                    }}
                   />
                   <div className="carousel-caption" aria-hidden>
                     <span className="carousel-caption-text">{img.name || img.alt}</span>
@@ -389,6 +371,9 @@ function GalleryCarousel({ images }) {
                     alt={img.alt}
                     onLoad={() => markLoaded(img.src)}
                     onError={() => markLoaded(img.src)}
+                    ref={(el) => {
+                      if (el && el.complete) markLoaded(img.src);
+                    }}
                   />
                   <div className="carousel-caption" aria-hidden>
                     <span className="carousel-caption-text">{img.name || img.alt}</span>
@@ -416,7 +401,8 @@ export default function Home() {
   const [countdown, setCountdown] = useState(null);
   const [giftOpen, setGiftOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [galleryImages, setGalleryImages] = useState(GALLERY_IMAGES_FALLBACK);
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [galleryLoading, setGalleryLoading] = useState(true);
 
   useEffect(() => {
     const tick = () => setCountdown(getCountdownParts(targetMs, Date.now()));
@@ -451,7 +437,11 @@ export default function Home() {
           .order("created_at", { ascending: false });
 
         if (cancelled) return;
-        if (error) return;
+        if (error) {
+          setGalleryImages([]);
+          setGalleryLoading(false);
+          return;
+        }
         const imgs = (data || [])
           .filter((r) => r?.url)
           .map((r) => ({
@@ -460,9 +450,13 @@ export default function Home() {
             name: r.name || "",
           }));
 
-        if (imgs.length) setGalleryImages(imgs);
+        setGalleryImages(imgs);
+        setGalleryLoading(false);
       } catch {
-        // fallback silencioso
+        if (!cancelled) {
+          setGalleryImages([]);
+          setGalleryLoading(false);
+        }
       }
     }
     loadGallery();
@@ -625,9 +619,11 @@ export default function Home() {
             Confirmar <em>asistencia</em>
           </h2>
           <p className="rsvp-subtitle">
+            <strong className="rsvp-please">Por favor confirma asistencia</strong>
+            <br />
             Estaremos felices de compartir con vos este día.
             <br />
-            Por favor confirmar asistencia. ¡Te esperamos!
+            ¡Te esperamos!
           </p>
 
           {!submitted ? (
@@ -702,7 +698,13 @@ export default function Home() {
       {/* ── GALLERY ── */}
       <div className="gallery-section fade-in" id="galeria">
         <h2 className="gallery-title">✦ &nbsp; Nosotros &nbsp; ✦</h2>
-        <GalleryCarousel images={galleryImages} />
+        {galleryLoading ? (
+          <div className="party-loading" aria-hidden>
+            <ClipLoader color="var(--gold)" size={34} />
+          </div>
+        ) : galleryImages.length ? (
+          <GalleryCarousel images={galleryImages} />
+        ) : null}
       </div>
 
       {/* ── GIFT ── */}
@@ -786,7 +788,7 @@ export default function Home() {
           <p>
             <strong>Alias:</strong> A completar por los novios
           </p>
-          <p style={{ marginTop: 16, fontSize: "0.95rem" }}>¡Gracias por tu gesto!</p>
+          <p style={{ marginTop: 16, fontSize: "1.2rem" }}>¡Gracias por tu gesto!</p>
         </div>
     </div>
     </>
