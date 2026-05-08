@@ -1,0 +1,236 @@
+.admin-page {
+  min-height: 100vh;
+  padding: 48px 20px;
+  box-sizing: border-box;
+  background: var(--cream, #f5f0e8);
+  color: var(--text, #3d3229);
+  font-family: var(--font-lato), system-ui, sans-serif;
+}
+
+/* Solo login: card + input centrados en la ventana */
+.admin-page.admin-login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-card {
+  width: 100%;
+  max-width: 400px;
+  margin: 0;
+  padding: 40px 32px;
+  background: var(--warm-white, #fdfaf4);
+  border: 1px solid rgba(184, 151, 90, 0.3);
+  box-shadow: 0 12px 40px rgba(42, 34, 24, 0.08);
+}
+
+.admin-title {
+  font-family: var(--font-cinzel), serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold, #b8975a);
+  margin-bottom: 12px;
+}
+
+.admin-hint {
+  font-size: 0.9rem;
+  color: var(--mid, #6b5d4f);
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mid, #6b5d4f);
+}
+
+.admin-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgba(184, 151, 90, 0.35);
+  background: #fff;
+  font-size: 1rem;
+  color: var(--text, #3d3229);
+}
+
+.admin-password-field {
+  position: relative;
+  width: 100%;
+}
+
+.admin-input-password {
+  padding-right: 48px;
+}
+
+.admin-password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  color: var(--mid, #6b5d4f);
+  cursor: pointer;
+  line-height: 0;
+  border-radius: 4px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.admin-password-toggle:hover {
+  color: var(--gold, #b8975a);
+  background: rgba(184, 151, 90, 0.08);
+}
+
+.admin-password-toggle:focus-visible {
+  outline: 2px solid var(--gold, #b8975a);
+  outline-offset: 2px;
+}
+
+.admin-input:focus {
+  outline: none;
+  border-color: var(--gold, #b8975a);
+}
+
+.admin-btn {
+  margin-top: 8px;
+  padding: 14px 20px;
+  font-family: var(--font-cinzel), serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  background: var(--gold, #b8975a);
+  color: var(--warm-white, #fdfaf4);
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.admin-btn:hover:not(:disabled) {
+  background: var(--dark, #2a2218);
+}
+
+.admin-btn:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.admin-btn-outline {
+  background: transparent;
+  color: var(--dark, #2a2218);
+  border: 1px solid rgba(42, 34, 24, 0.35);
+}
+
+.admin-btn-outline:hover:not(:disabled) {
+  background: rgba(42, 34, 24, 0.06);
+}
+
+.admin-error {
+  color: #8b4513;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.admin-back {
+  margin-top: 28px;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.admin-back a {
+  color: var(--gold, #b8975a);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Dashboard */
+.admin-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.admin-dash-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.admin-dash-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-link {
+  font-size: 0.85rem;
+  color: var(--gold, #b8975a);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.admin-empty {
+  color: var(--mid, #6b5d4f);
+  font-style: italic;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+  background: var(--warm-white, #fdfaf4);
+  border: 1px solid rgba(184, 151, 90, 0.25);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid rgba(184, 151, 90, 0.15);
+  vertical-align: top;
+}
+
+.admin-table th {
+  font-family: var(--font-cinzel), serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold, #b8975a);
+  background: rgba(245, 240, 232, 0.6);
+}
+
+.admin-td-muted {
+  color: var(--mid, #6b5d4f);
+  white-space: nowrap;
+}
+
+.admin-td-wrap {
+  max-width: 280px;
+  word-break: break-word;
+}
+
+@media (max-width: 700px) {
+  .admin-table th:nth-child(1),
+  .admin-table td:nth-child(1) {
+    display: none;
+  }
+}

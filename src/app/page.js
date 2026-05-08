@@ -1,24 +1,49 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { submitRsvp } from "@/app/actions/rsvp-actions";
+import { AiFillHeart } from "react-icons/ai";
+import { createClient as createBrowserSupabaseClient } from "@/lib/supabase/client";
+import ClipLoader from "react-spinners/ClipLoader";
 
 const TARGET_ISO = "2026-10-03T18:00:00-03:00";
-const GALLERY_IMAGES = [
+/** 3 oct 2026 18:00–23:00 ART (UTC-3) → Google Calendar param en UTC */
+const GCAL_DATES_UTC = "20261003T210000Z/20261004T020000Z";
+
+function googleCalendarAddUrl() {
+  const q = new URLSearchParams({
+    action: "TEMPLATE",
+    text: "Casamiento Vir y Seba",
+    dates: GCAL_DATES_UTC,
+    details: "Vir y Seba — La Herencia, La Lonja, Pilar.",
+    location: "La Herencia, Saravi 1799, La Lonja, Pilar, Buenos Aires",
+  });
+  return `https://calendar.google.com/calendar/render?${q.toString()}`;
+}
+
+const GOOGLE_CALENDAR_ADD_URL = googleCalendarAddUrl();
+const APPLE_CALENDAR_ICS_PATH = "/calendar/casamiento-vir-seba-2026.ics";
+
+const GALLERY_IMAGES_FALLBACK = [
   {
     src: "https://static.wixstatic.com/media/142a7c_195f727fcf1c4d728b0a13d31ef864b6~mv2.jpeg/v1/fit/w_600,h_800,q_90,enc_avif,quality_auto/142a7c_195f727fcf1c4d728b0a13d31ef864b6~mv2.jpeg",
     alt: "Vir y Sebas",
+    name: "Vir y Sebas",
   },
   {
     src: "https://static.wixstatic.com/media/142a7c_896ca15ba7ef4b80b96fd2321621a917~mv2.jpeg/v1/fit/w_600,h_800,q_90,enc_avif,quality_auto/142a7c_896ca15ba7ef4b80b96fd2321621a917~mv2.jpeg",
     alt: "Vir y Sebas",
+    name: "Vir y Sebas",
   },
   {
     src: "https://static.wixstatic.com/media/142a7c_e88469e6b9fb401ab91f03746ef7d944~mv2.jpeg/v1/fit/w_700,h_800,q_90,enc_avif,quality_auto/142a7c_e88469e6b9fb401ab91f03746ef7d944~mv2.jpeg",
     alt: "Vir y Sebas",
+    name: "Vir y Sebas",
   },
   {
     src: "https://static.wixstatic.com/media/142a7c_c141da00906d433cbcb8eed60e9f4651~mv2.jpeg/v1/fit/w_800,h_740,q_90,enc_avif,quality_auto/142a7c_c141da00906d433cbcb8eed60e9f4651~mv2.jpeg",
     alt: "Vir y Sebas",
+    name: "Vir y Sebas",
   },
 ];
 
@@ -38,6 +63,7 @@ function getCountdownParts(targetMs, nowMs) {
 function GalleryCarousel({ images }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [slidesPerView, setSlidesPerView] = useState(4);
+  const [loaded, setLoaded] = useState(() => new Set());
 
   // Carousel (loop) state
   const [vIndex, setVIndex] = useState(0); // virtual index (includes clones)
@@ -55,6 +81,19 @@ function GalleryCarousel({ images }) {
   const [lbDeltaX, setLbDeltaX] = useState(0);
 
   const count = images.length;
+
+  useEffect(() => {
+    // al cambiar la lista de imágenes, reiniciamos el estado de carga
+    setLoaded(new Set());
+  }, [images]);
+
+  const markLoaded = (src) =>
+    setLoaded((prev) => {
+      if (prev.has(src)) return prev;
+      const next = new Set(prev);
+      next.add(src);
+      return next;
+    });
 
   useEffect(() => {
     const update = () => {
@@ -239,8 +278,24 @@ function GalleryCarousel({ images }) {
                 }}
                 aria-label="Abrir foto"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={img.src} alt={img.alt} />
+                <div className="carousel-img">
+                  {!loaded.has(img.src) ? (
+                    <span className="carousel-spinner" aria-hidden>
+                      <ClipLoader color="var(--gold)" size={22} />
+                    </span>
+                  ) : null}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={img.src}
+                    alt={img.alt}
+                    loading="lazy"
+                    onLoad={() => markLoaded(img.src)}
+                    onError={() => markLoaded(img.src)}
+                  />
+                  <div className="carousel-caption" aria-hidden>
+                    <span className="carousel-caption-text">{img.name || img.alt}</span>
+                  </div>
+                </div>
               </button>
             ))}
           </div>
@@ -281,6 +336,12 @@ function GalleryCarousel({ images }) {
 
         <div
           className="lightbox-viewport"
+          onClick={(e) => {
+            // Si tocás/clickeás fuera de la imagen (fondo/espacios), cerramos.
+            // Muchos contenedores del lightbox quedan por encima del backdrop, así que lo manejamos acá.
+            if (e.target instanceof Element && e.target.closest("img")) return;
+            setLightboxOpen(false);
+          }}
           onPointerDown={(e) => {
             if (e.pointerType === "mouse") return;
             setLbDragging(true);
@@ -316,8 +377,23 @@ function GalleryCarousel({ images }) {
           >
             {lbLoopImages.map((img, i) => (
               <div className="lightbox-slide" key={`lb-${img.src}-${i}`}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={img.src} alt={img.alt} />
+                <div className="carousel-img carousel-img-lightbox">
+                  {!loaded.has(img.src) ? (
+                    <span className="carousel-spinner" aria-hidden>
+                      <ClipLoader color="var(--gold)" size={26} />
+                    </span>
+                  ) : null}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={img.src}
+                    alt={img.alt}
+                    onLoad={() => markLoaded(img.src)}
+                    onError={() => markLoaded(img.src)}
+                  />
+                  <div className="carousel-caption" aria-hidden>
+                    <span className="carousel-caption-text">{img.name || img.alt}</span>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -340,6 +416,7 @@ export default function Home() {
   const [countdown, setCountdown] = useState(null);
   const [giftOpen, setGiftOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [galleryImages, setGalleryImages] = useState(GALLERY_IMAGES_FALLBACK);
 
   useEffect(() => {
     const tick = () => setCountdown(getCountdownParts(targetMs, Date.now()));
@@ -362,13 +439,72 @@ export default function Home() {
     return () => observer.disconnect();
   }, []);
 
-  function onSubmit(e) {
+  useEffect(() => {
+    let cancelled = false;
+    async function loadGallery() {
+      try {
+        const supabase = createBrowserSupabaseClient();
+        const { data, error } = await supabase
+          .from("gallery_images")
+          .select("name,url")
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: false });
+
+        if (cancelled) return;
+        if (error) return;
+        const imgs = (data || [])
+          .filter((r) => r?.url)
+          .map((r) => ({
+            src: r.url,
+            alt: r.name || "Foto",
+            name: r.name || "",
+          }));
+
+        if (imgs.length) setGalleryImages(imgs);
+      } catch {
+        // fallback silencioso
+      }
+    }
+    loadGallery();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const [rsvpPending, setRsvpPending] = useState(false);
+
+  async function onSubmit(e) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const nombre = String(formData.get("nombre") || "").trim();
     const apellido = String(formData.get("apellido") || "").trim();
-    if (!nombre || !apellido) {
-      alert("Por favor completá tu nombre y apellido.");
+    const email = String(formData.get("email") || "").trim();
+    const acompanado = formData.get("acompanado");
+
+    const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s'-]+$/;
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    if (!nombre || !soloLetras.test(nombre)) {
+      alert("El nombre solo puede incluir letras (y espacio o guión si hace falta).");
+      return;
+    }
+    if (!apellido || !soloLetras.test(apellido)) {
+      alert("El apellido solo puede incluir letras (y espacio o guión si hace falta).");
+      return;
+    }
+    if (!email || !emailOk) {
+      alert("Ingresá un correo electrónico válido.");
+      return;
+    }
+    if (!acompanado) {
+      alert("Indicá si vas acompañado o no.");
+      return;
+    }
+    setRsvpPending(true);
+    const result = await submitRsvp(formData);
+    setRsvpPending(false);
+    if (!result.ok) {
+      alert(result.error || "No se pudo enviar. Probá de nuevo.");
       return;
     }
     setSubmitted(true);
@@ -402,6 +538,26 @@ export default function Home() {
           <div className="date-month">octubre</div>
           <div className="date-year">2026</div>
           <div className="date-time">Sabado · 18:00hs</div>
+        </div>
+        <div
+          className="calendar-add-links"
+          role="group"
+          aria-label="Agregar al calendario"
+        >
+          <a
+            className="btn btn-calendar"
+            href={GOOGLE_CALENDAR_ADD_URL}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Agendar con Google
+          </a>
+          <a
+            className="btn btn-calendar"
+            href={APPLE_CALENDAR_ICS_PATH}
+          >
+            Agendar con iPhone
+          </a>
         </div>
         <div className="ornament">✦</div>
         <div className="venue-name">La Herencia</div>
@@ -465,7 +621,6 @@ export default function Home() {
       {/* ── RSVP ── */}
       <div className="rsvp-section fade-in" id="rsvp">
         <div className="rsvp-inner">
-          <p className="section-label">R.S.V.P.</p>
           <h2 className="section-title">
             Confirmar <em>asistencia</em>
           </h2>
@@ -479,7 +634,16 @@ export default function Home() {
             <form onSubmit={onSubmit} className="rsvp-form">
               <div className="form-grid">
                 <div className="form-field">
-                  <input name="nombre" type="text" placeholder="Nombre *" required />
+                  <input
+                    name="nombre"
+                    type="text"
+                    placeholder="Nombre *"
+                    required
+                    autoComplete="given-name"
+                    inputMode="text"
+                    pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü '\-]+"
+                    title="Solo letras"
+                  />
                 </div>
                 <div className="form-field">
                   <input
@@ -487,10 +651,34 @@ export default function Home() {
                     type="text"
                     placeholder="Apellido *"
                     required
+                    autoComplete="family-name"
+                    inputMode="text"
+                    pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü '\-]+"
+                    title="Solo letras"
                   />
                 </div>
                 <div className="form-field form-full">
-                  <input name="email" type="email" placeholder="Email" />
+                  <input
+                    name="email"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    placeholder="Email *"
+                    required
+                  />
+                </div>
+                <div className="form-radio-group form-full">
+                  <span className="form-radio-legend">¿Voy acompañado?</span>
+                  <div className="form-radio-options">
+                    <label className="form-radio-option">
+                      <input type="radio" name="acompanado" value="si" required />
+                      <span>Sí</span>
+                    </label>
+                    <label className="form-radio-option">
+                      <input type="radio" name="acompanado" value="no" />
+                      <span>No</span>
+                    </label>
+                  </div>
                 </div>
                 <div className="form-field form-full">
                   <textarea
@@ -499,13 +687,13 @@ export default function Home() {
                   />
                 </div>
               </div>
-              <button className="btn-submit" type="submit">
-                Enviar confirmación
+              <button className="btn-submit" type="submit" disabled={rsvpPending}>
+                {rsvpPending ? "Enviando…" : "Enviar confirmación"}
               </button>
             </form>
           ) : (
             <div className="form-success" style={{ display: "block" }}>
-              ¡Gracias! Tu confirmación fue recibida con alegría 🤍
+              ¡Gracias! Tu confirmación fue enviada <AiFillHeart className="form-success-heart" aria-hidden />
             </div>
           )}
         </div>
@@ -514,7 +702,7 @@ export default function Home() {
       {/* ── GALLERY ── */}
       <div className="gallery-section fade-in" id="galeria">
         <h2 className="gallery-title">✦ &nbsp; Nosotros &nbsp; ✦</h2>
-        <GalleryCarousel images={GALLERY_IMAGES} />
+        <GalleryCarousel images={galleryImages} />
       </div>
 
       {/* ── GIFT ── */}
@@ -572,7 +760,7 @@ export default function Home() {
             nuestros proyectos.
           </p>
           <button className="btn-light" type="button" onClick={() => setGiftOpen(true)}>
-            Ver datos de regalo
+            Ver datos
           </button>
           <p className="gift-thanks">¡ Gracias !</p>
         </div>
@@ -600,7 +788,7 @@ export default function Home() {
           </p>
           <p style={{ marginTop: 16, fontSize: "0.95rem" }}>¡Gracias por tu gesto!</p>
         </div>
-      </div>
+    </div>
     </>
   );
 }
