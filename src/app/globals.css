@@ -547,7 +547,8 @@ section.inv-section {
 }
 
 .form-field input,
-.form-field textarea {
+.form-field textarea,
+.form-field select {
   width: 100%;
   background: var(--warm-white);
   border: 1px solid rgba(184, 151, 90, 0.3);
@@ -575,6 +576,42 @@ section.inv-section {
 .form-field textarea {
   resize: none;
   min-height: 90px;
+}
+
+.form-field select,
+.form-select {
+  cursor: pointer;
+  color: var(--text);
+}
+
+.form-field select option[value=""] {
+  color: #a8998a;
+}
+
+.form-companion {
+  padding: 8px 0 4px;
+}
+
+.form-companion-legend {
+  display: block;
+  font-family: var(--font-lato), sans-serif;
+  font-size: 0.85rem;
+  color: #a8998a;
+  font-style: italic;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.form-companion-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 600px) {
+  .form-companion-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .form-radio-group {

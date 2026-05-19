@@ -16,6 +16,13 @@ CREATE TABLE IF NOT EXISTS public.rsvp_responses (
   acompanado text NOT NULL CHECK (acompanado IN ('si', 'no')),
   necesita_transporte text NOT NULL CHECK (necesita_transporte IN ('si', 'no')),
   necesita_hospedaje text NOT NULL CHECK (necesita_hospedaje IN ('si', 'no')),
+  acompanante_nombre text,
+  acompanante_apellido text,
+  restriccion_tipo text CHECK (
+    restriccion_tipo IS NULL
+    OR restriccion_tipo IN ('vegano', 'vegetariano', 'celiaco', 'otro')
+  ),
+  restriccion_otro text,
   restricciones text,
   created_at timestamptz NOT NULL DEFAULT now()
 );

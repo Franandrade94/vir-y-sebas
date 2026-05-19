@@ -459,6 +459,8 @@ export default function InvitationPage({ sinInvitados = false }) {
   const [rsvpPending, setRsvpPending] = useState(false);
   const [emailNotice, setEmailNotice] = useState(null);
   const [calendarIcsUrl, setCalendarIcsUrl] = useState(CALENDAR_ICS_PATH);
+  const [vaAcompanado, setVaAcompanado] = useState("");
+  const [restriccionTipo, setRestriccionTipo] = useState("");
   const rsvpFormRef = useRef(null);
 
   useEffect(() => {
@@ -470,6 +472,8 @@ export default function InvitationPage({ sinInvitados = false }) {
       if (event.persisted) {
         setSubmitted(false);
         setEmailNotice(null);
+        setVaAcompanado("");
+        setRestriccionTipo("");
         rsvpFormRef.current?.reset();
       }
     };
@@ -518,6 +522,24 @@ export default function InvitationPage({ sinInvitados = false }) {
       alert("Indicá si necesitás hospedaje.");
       return;
     }
+    const restriccionTipoVal = String(formData.get("restriccion_tipo") || "").trim();
+    const restriccionOtro = String(formData.get("restriccion_otro") || "").trim();
+    if (restriccionTipoVal === "otro" && !restriccionOtro) {
+      alert("Completá la restricción alimentaria.");
+      return;
+    }
+    if (!sinInvitados && acompanado === "si") {
+      const aNom = String(formData.get("acompanante_nombre") || "").trim();
+      const aApe = String(formData.get("acompanante_apellido") || "").trim();
+      if (!aNom || !soloLetras.test(aNom)) {
+        alert("Revisá el nombre del acompañante (solo letras).");
+        return;
+      }
+      if (!aApe || !soloLetras.test(aApe)) {
+        alert("Revisá el apellido del acompañante (solo letras).");
+        return;
+      }
+    }
     setRsvpPending(true);
     setEmailNotice(null);
     const result = await submitRsvp(formData);
@@ -527,6 +549,8 @@ export default function InvitationPage({ sinInvitados = false }) {
       return;
     }
     e.currentTarget.reset();
+    setVaAcompanado("");
+    setRestriccionTipo("");
     if (!result.emailSent) {
       setEmailNotice(
         result.emailError ||
@@ -706,13 +730,55 @@ export default function InvitationPage({ sinInvitados = false }) {
                     <span className="form-radio-legend">¿Voy acompañado?</span>
                     <div className="form-radio-options">
                       <label className="form-radio-option">
-                        <input type="radio" name="acompanado" value="si" required />
+                        <input
+                          type="radio"
+                          name="acompanado"
+                          value="si"
+                          required
+                          checked={vaAcompanado === "si"}
+                          onChange={() => setVaAcompanado("si")}
+                        />
                         <span>Sí</span>
                       </label>
                       <label className="form-radio-option">
-                        <input type="radio" name="acompanado" value="no" />
+                        <input
+                          type="radio"
+                          name="acompanado"
+                          value="no"
+                          checked={vaAcompanado === "no"}
+                          onChange={() => setVaAcompanado("no")}
+                        />
                         <span>No</span>
                       </label>
+                    </div>
+                  </div>
+                ) : null}
+                {!sinInvitados && vaAcompanado === "si" ? (
+                  <div className="form-companion form-full">
+                    <p className="form-companion-legend">Datos del acompañante</p>
+                    <div className="form-companion-grid">
+                      <div className="form-field">
+                        <input
+                          name="acompanante_nombre"
+                          type="text"
+                          placeholder="Nombre del acompañante *"
+                          required
+                          inputMode="text"
+                          pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü '\\-]+"
+                          title="Solo letras"
+                        />
+                      </div>
+                      <div className="form-field">
+                        <input
+                          name="acompanante_apellido"
+                          type="text"
+                          placeholder="Apellido del acompañante *"
+                          required
+                          inputMode="text"
+                          pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü '\\-]+"
+                          title="Solo letras"
+                        />
+                      </div>
                     </div>
                   </div>
                 ) : null}
@@ -753,11 +819,30 @@ export default function InvitationPage({ sinInvitados = false }) {
                   </div>
                 </div>
                 <div className="form-field form-full">
-                  <textarea
-                    name="restricciones"
-                    placeholder="Restricciones alimentarias"
-                  />
+                  <select
+                    name="restriccion_tipo"
+                    value={restriccionTipo}
+                    onChange={(e) => setRestriccionTipo(e.target.value)}
+                    className="form-select"
+                    aria-label="Restricciones alimentarias"
+                  >
+                    <option value="">Restricciones alimentarias</option>
+                    <option value="vegano">Vegano</option>
+                    <option value="vegetariano">Vegetariano</option>
+                    <option value="celiaco">Celiaco</option>
+                    <option value="otro">Otro</option>
+                  </select>
                 </div>
+                {restriccionTipo === "otro" ? (
+                  <div className="form-field form-full">
+                    <input
+                      name="restriccion_otro"
+                      type="text"
+                      placeholder="Especificá la restricción *"
+                      required
+                    />
+                  </div>
+                ) : null}
               </div>
               <button className="btn-submit" type="submit" disabled={rsvpPending}>
                 {rsvpPending ? "Enviando…" : "Enviar confirmación"}

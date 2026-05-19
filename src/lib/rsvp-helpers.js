@@ -1,0 +1,27 @@
+export const RESTRICCION_TIPOS = ["vegano", "vegetariano", "celiaco", "otro"];
+
+export const RESTRICCION_LABELS = {
+  vegano: "Vegano",
+  vegetariano: "Vegetariano",
+  celiaco: "Celiaco",
+  otro: "Otro",
+};
+
+export function formatRestriccionDisplay(tipo, otro, legacyRestricciones) {
+  if (tipo && RESTRICCION_LABELS[tipo]) {
+    if (tipo === "otro") {
+      return otro?.trim() ? `Otro: ${otro.trim()}` : "Otro";
+    }
+    return RESTRICCION_LABELS[tipo];
+  }
+  const legacy = legacyRestricciones?.trim();
+  return legacy || "—";
+}
+
+export function formatAcompananteDisplay(acompanado, nombre, apellido) {
+  if (acompanado !== "si") return "—";
+  const n = nombre?.trim();
+  const a = apellido?.trim();
+  if (!n && !a) return "—";
+  return [n, a].filter(Boolean).join(" ");
+}

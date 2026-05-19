@@ -3,6 +3,10 @@ import Link from "next/link";
 import { verifyAdminSession } from "@/lib/admin-session";
 import { createAdminClient } from "@/lib/supabase/service";
 import { logoutAdmin } from "@/app/actions/admin-actions";
+import {
+  formatAcompananteDisplay,
+  formatRestriccionDisplay,
+} from "@/lib/rsvp-helpers";
 
 export const metadata = {
   title: "Confirmaciones · Admin",
@@ -18,7 +22,7 @@ export default async function AdminDashboardPage() {
   const { data: rows, error } = await supabase
     .from("rsvp_responses")
     .select(
-      "id,nombre,apellido,email,acompanado,necesita_transporte,necesita_hospedaje,restricciones,created_at"
+      "id,nombre,apellido,email,acompanado,acompanante_nombre,acompanante_apellido,necesita_transporte,necesita_hospedaje,restriccion_tipo,restriccion_otro,restricciones,created_at"
     )
     .order("created_at", { ascending: false });
 
@@ -47,9 +51,10 @@ export default async function AdminDashboardPage() {
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Nombre</th>
+                <th>Invitado</th>
                 <th>Email</th>
                 <th>¿Acompañado?</th>
+                <th>Acompañante</th>
                 <th>Transporte</th>
                 <th>Hospedaje</th>
                 <th>Restricciones</th>
@@ -63,10 +68,21 @@ export default async function AdminDashboardPage() {
                   </td>
                   <td>{r.email}</td>
                   <td>{r.acompanado === "si" ? "Sí" : "No"}</td>
+                  <td>
+                    {formatAcompananteDisplay(
+                      r.acompanado,
+                      r.acompanante_nombre,
+                      r.acompanante_apellido
+                    )}
+                  </td>
                   <td>{r.necesita_transporte === "si" ? "Sí" : "No"}</td>
                   <td>{r.necesita_hospedaje === "si" ? "Sí" : "No"}</td>
                   <td className="admin-td-wrap">
-                    {r.restricciones?.trim() ? r.restricciones : "—"}
+                    {formatRestriccionDisplay(
+                      r.restriccion_tipo,
+                      r.restriccion_otro,
+                      r.restricciones
+                    )}
                   </td>
                 </tr>
               ))}
@@ -77,3 +93,4 @@ export default async function AdminDashboardPage() {
     </div>
   );
 }
+
