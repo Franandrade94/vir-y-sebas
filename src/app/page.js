@@ -7,11 +7,13 @@ import { createClient as createBrowserSupabaseClient } from "@/lib/supabase/clie
 import {
   CALENDAR_ICS_PATH,
   getCalendarIcsUrl,
+  getGoogleCalendarUrl,
   VENUE_MAPS_URL,
 } from "@/lib/event-links";
 import ClipLoader from "react-spinners/ClipLoader";
 
 const TARGET_ISO = "2026-10-03T18:00:00-03:00";
+const GOOGLE_CALENDAR_ADD_URL = getGoogleCalendarUrl();
 
 const GALLERY_IMAGES_FALLBACK = [];
 
@@ -566,7 +568,9 @@ export default function Home() {
         >
           <a
             className="btn btn-calendar"
-            href={calendarIcsUrl}
+            href={GOOGLE_CALENDAR_ADD_URL}
+            target="_blank"
+            rel="noreferrer"
           >
             Agendar con Google
           </a>

@@ -1,5 +1,6 @@
 import {
-  getCalendarIcsUrl,
+  getAppleCalendarUrl,
+  getGoogleCalendarUrl,
   HOTEL_DISCOUNT_CODE,
   HOTEL_MAPS_URL,
   HOTEL_WEB_URL,
@@ -73,12 +74,13 @@ function buildHotelSection() {
 }
 
 function buildEventSection(siteUrl) {
-  const calendarUrl = getCalendarIcsUrl(siteUrl);
+  const googleUrl = getGoogleCalendarUrl();
+  const appleUrl = getAppleCalendarUrl(siteUrl);
   return `
     ${heading("Agendá la fecha")}
     <p style="margin:0 0 14px;text-align:center;">
-      ${btn(calendarUrl, "Agendar con Google")}
-      ${btn(calendarUrl, "Agendar con iPhone")}
+      ${btn(googleUrl, "Agendar con Google")}
+      ${btn(appleUrl, "Agendar con iPhone")}
     </p>
     ${heading("Ubicación del salón")}
     ${paragraph(
