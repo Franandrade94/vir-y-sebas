@@ -1700,3 +1700,9 @@ section.inv-section {
 .site-footer-link:hover {
   color: var(--gold-light);
 }
+
+@media (max-width: 1024px) {
+  .site-footer {
+    justify-content: center;
+  }
+}
