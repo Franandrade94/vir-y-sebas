@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS public.rsvp_responses (
   apellido text NOT NULL,
   email text NOT NULL,
   acompanado text NOT NULL CHECK (acompanado IN ('si', 'no')),
+  necesita_transporte text NOT NULL CHECK (necesita_transporte IN ('si', 'no')),
+  necesita_hospedaje text NOT NULL CHECK (necesita_hospedaje IN ('si', 'no')),
   restricciones text,
   created_at timestamptz NOT NULL DEFAULT now()
 );

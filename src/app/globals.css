@@ -16,8 +16,8 @@ html {
 
 html,
 body {
-  max-width: 100vw;
-  overflow-x: hidden;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 body {
@@ -63,9 +63,9 @@ body::before {
 
 /* ── HERO ── */
 .hero {
-  width: 100vw;
-  min-height: 100vh;
-  min-height: 100vh;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -192,7 +192,7 @@ section.inv-section {
 /* ── CUÁNDO Y DÓNDE BACKGROUND ── */
 #cuando-donde.inv-section {
   max-width: none;
-  width: 100vw;
+  width: 100%;
   position: relative;
   background-color: var(--cream);
   background-image: url("/assets/image/hero/Back.png");
@@ -850,8 +850,8 @@ section.inv-section {
   left: 0;
   width: 100dvw;
   height: 100dvh;
-  min-width: 100vw;
-  min-height: 100vh;
+  min-width: 100%;
+  min-height: 100dvh;
   z-index: 5000;
   background: transparent;
 }
@@ -1186,6 +1186,39 @@ section.inv-section {
   font-weight: 600;
 }
 
+.modal-account {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(184, 151, 90, 0.35);
+  text-align: left;
+}
+
+.modal-account:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.modal-account-title {
+  font-family: var(--font-cinzel), serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-style: normal;
+  margin-bottom: 12px;
+}
+
+.modal-account p {
+  font-size: 1.15rem;
+  word-break: break-word;
+}
+
+.modal-thanks {
+  margin-top: 24px;
+  font-size: 1.2rem;
+}
+
 .modal-close {
   position: absolute;
   top: 16px;
@@ -1206,6 +1239,16 @@ section.inv-section {
   font-style: italic;
   color: var(--gold);
   padding: 32px;
+}
+
+.form-success p {
+  margin: 0;
+}
+
+.form-success-email {
+  margin-top: 16px !important;
+  font-size: 1.15rem;
+  color: var(--mid);
 }
 
 .form-success-heart {

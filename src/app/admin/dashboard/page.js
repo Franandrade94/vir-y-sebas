@@ -17,7 +17,9 @@ export default async function AdminDashboardPage() {
   const supabase = createAdminClient();
   const { data: rows, error } = await supabase
     .from("rsvp_responses")
-    .select("id,nombre,apellido,email,acompanado,restricciones,created_at")
+    .select(
+      "id,nombre,apellido,email,acompanado,necesita_transporte,necesita_hospedaje,restricciones,created_at"
+    )
     .order("created_at", { ascending: false });
 
   return (
@@ -48,6 +50,8 @@ export default async function AdminDashboardPage() {
                 <th>Nombre</th>
                 <th>Email</th>
                 <th>¿Acompañado?</th>
+                <th>Transporte</th>
+                <th>Hospedaje</th>
                 <th>Restricciones</th>
               </tr>
             </thead>
@@ -59,6 +63,8 @@ export default async function AdminDashboardPage() {
                   </td>
                   <td>{r.email}</td>
                   <td>{r.acompanado === "si" ? "Sí" : "No"}</td>
+                  <td>{r.necesita_transporte === "si" ? "Sí" : "No"}</td>
+                  <td>{r.necesita_hospedaje === "si" ? "Sí" : "No"}</td>
                   <td className="admin-td-wrap">
                     {r.restricciones?.trim() ? r.restricciones : "—"}
                   </td>

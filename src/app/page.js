@@ -4,25 +4,15 @@ import { useEffect, useMemo, useState } from "react";
 import { submitRsvp } from "@/app/actions/rsvp-actions";
 import { AiFillHeart } from "react-icons/ai";
 import { createClient as createBrowserSupabaseClient } from "@/lib/supabase/client";
+import {
+  APPLE_CALENDAR_ICS_PATH,
+  getGoogleCalendarUrl,
+  VENUE_MAPS_URL,
+} from "@/lib/event-links";
 import ClipLoader from "react-spinners/ClipLoader";
 
 const TARGET_ISO = "2026-10-03T18:00:00-03:00";
-/** 3 oct 2026 18:00–23:00 ART (UTC-3) → Google Calendar param en UTC */
-const GCAL_DATES_UTC = "20261003T210000Z/20261004T020000Z";
-
-function googleCalendarAddUrl() {
-  const q = new URLSearchParams({
-    action: "TEMPLATE",
-    text: "Casamiento Vir y Seba",
-    dates: GCAL_DATES_UTC,
-    details: "Vir y Seba — La Herencia, La Lonja, Pilar.",
-    location: "La Herencia, Saravi 1799, La Lonja, Pilar, Buenos Aires",
-  });
-  return `https://calendar.google.com/calendar/render?${q.toString()}`;
-}
-
-const GOOGLE_CALENDAR_ADD_URL = googleCalendarAddUrl();
-const APPLE_CALENDAR_ICS_PATH = "/calendar/casamiento-vir-seba-2026.ics";
+const GOOGLE_CALENDAR_ADD_URL = getGoogleCalendarUrl();
 
 const GALLERY_IMAGES_FALLBACK = [];
 
@@ -474,6 +464,8 @@ export default function Home() {
     const apellido = String(formData.get("apellido") || "").trim();
     const email = String(formData.get("email") || "").trim();
     const acompanado = formData.get("acompanado");
+    const necesita_transporte = formData.get("necesita_transporte");
+    const necesita_hospedaje = formData.get("necesita_hospedaje");
 
     const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s'-]+$/;
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -492,6 +484,14 @@ export default function Home() {
     }
     if (!acompanado) {
       alert("Indicá si vas acompañado o no.");
+      return;
+    }
+    if (!necesita_transporte) {
+      alert("Indicá si necesitás transporte.");
+      return;
+    }
+    if (!necesita_hospedaje) {
+      alert("Indicá si necesitás hospedaje.");
       return;
     }
     setRsvpPending(true);
@@ -561,7 +561,7 @@ export default function Home() {
           La Lonja, Pilar · Buenos Aires
         </div>
         <a
-          href="https://www.google.com/maps/place/La+Herencia+Eventos/@-34.4491502,-58.8428629,17z"
+          href={VENUE_MAPS_URL}
           target="_blank"
           rel="noreferrer"
           className="btn"
@@ -676,6 +676,42 @@ export default function Home() {
                     </label>
                   </div>
                 </div>
+                <div className="form-radio-group form-full">
+                  <span className="form-radio-legend">¿Necesitás transporte?</span>
+                  <div className="form-radio-options">
+                    <label className="form-radio-option">
+                      <input
+                        type="radio"
+                        name="necesita_transporte"
+                        value="si"
+                        required
+                      />
+                      <span>Sí</span>
+                    </label>
+                    <label className="form-radio-option">
+                      <input type="radio" name="necesita_transporte" value="no" />
+                      <span>No</span>
+                    </label>
+                  </div>
+                </div>
+                <div className="form-radio-group form-full">
+                  <span className="form-radio-legend">¿Necesitás hospedaje?</span>
+                  <div className="form-radio-options">
+                    <label className="form-radio-option">
+                      <input
+                        type="radio"
+                        name="necesita_hospedaje"
+                        value="si"
+                        required
+                      />
+                      <span>Sí</span>
+                    </label>
+                    <label className="form-radio-option">
+                      <input type="radio" name="necesita_hospedaje" value="no" />
+                      <span>No</span>
+                    </label>
+                  </div>
+                </div>
                 <div className="form-field form-full">
                   <textarea
                     name="restricciones"
@@ -689,7 +725,13 @@ export default function Home() {
             </form>
           ) : (
             <div className="form-success" style={{ display: "block" }}>
-              ¡Gracias! Tu confirmación fue enviada <AiFillHeart className="form-success-heart" aria-hidden />
+              <p>
+                ¡Gracias! Tu confirmación fue enviada{" "}
+                <AiFillHeart className="form-success-heart" aria-hidden />
+              </p>
+              <p className="form-success-email">
+                En breve te va a estar llegando un correo con toda la información.
+              </p>
             </div>
           )}
         </div>
@@ -781,14 +823,31 @@ export default function Home() {
             ✕
           </button>
           <h3>Datos de regalo</h3>
-          <p>Transferencia bancaria</p>
-          <p>
-            <strong>CBU:</strong> A completar por los novios
-          </p>
-          <p>
-            <strong>Alias:</strong> A completar por los novios
-          </p>
-          <p style={{ marginTop: 16, fontSize: "1.2rem" }}>¡Gracias por tu gesto!</p>
+          <div className="modal-account">
+            <p className="modal-account-title">Cuenta USD</p>
+            <p>
+              <strong>CBU:</strong> 0070363331004012024319
+            </p>
+            <p>
+              <strong>Alias:</strong> VirySebi.USD
+            </p>
+            <p>
+              <strong>Nombre:</strong> Virginia Prieto
+            </p>
+          </div>
+          <div className="modal-account">
+            <p className="modal-account-title">Cuenta pesos</p>
+            <p>
+              <strong>Alias:</strong> virysebi.pesos
+            </p>
+            <p>
+              <strong>CVU:</strong> 0000003100063745490570
+            </p>
+            <p>
+              <strong>Nombre:</strong> Sebastian Sabio Alcaraz
+            </p>
+          </div>
+          <p className="modal-thanks">¡Gracias por tu gesto!</p>
         </div>
     </div>
     </>
