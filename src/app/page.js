@@ -456,6 +456,7 @@ export default function Home() {
   }, []);
 
   const [rsvpPending, setRsvpPending] = useState(false);
+  const [emailNotice, setEmailNotice] = useState(null);
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -495,11 +496,18 @@ export default function Home() {
       return;
     }
     setRsvpPending(true);
+    setEmailNotice(null);
     const result = await submitRsvp(formData);
     setRsvpPending(false);
     if (!result.ok) {
       alert(result.error || "No se pudo enviar. Probá de nuevo.");
       return;
+    }
+    if (!result.emailSent) {
+      setEmailNotice(
+        result.emailError ||
+          "Guardamos tu confirmación, pero no pudimos enviar el correo. Revisá la carpeta de spam o escribinos."
+      );
     }
     setSubmitted(true);
   }
@@ -618,13 +626,15 @@ export default function Home() {
           <h2 className="section-title">
             Confirmar <em>asistencia</em>
           </h2>
-          <p className="rsvp-subtitle">
-            <strong className="rsvp-please">Por favor confirma asistencia</strong>
-            <br />
-            Estaremos felices de compartir con vos este día.
-            <br />
-            ¡Te esperamos!
-          </p>
+          {!submitted && (
+            <p className="rsvp-subtitle">
+              <strong className="rsvp-please">Por favor confirma asistencia</strong>
+              <br />
+              Estaremos felices de compartir con vos este día.
+              <br />
+              ¡Te esperamos!
+            </p>
+          )}
 
           {!submitted ? (
             <form onSubmit={onSubmit} className="rsvp-form">
@@ -725,13 +735,18 @@ export default function Home() {
             </form>
           ) : (
             <div className="form-success" style={{ display: "block" }}>
-              <p>
+              <p className="form-success-title">
                 ¡Gracias! Tu confirmación fue enviada{" "}
                 <AiFillHeart className="form-success-heart" aria-hidden />
               </p>
               <p className="form-success-email">
                 En breve te va a estar llegando un correo con toda la información.
               </p>
+              {emailNotice ? (
+                <p className="form-success-warn" role="status">
+                  {emailNotice}
+                </p>
+              ) : null}
             </div>
           )}
         </div>

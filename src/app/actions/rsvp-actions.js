@@ -50,7 +50,7 @@ export async function submitRsvp(formData) {
     }
 
     const { sendRsvpConfirmationEmail } = await import("@/lib/email/send-rsvp-email");
-    await sendRsvpConfirmationEmail({
+    const emailResult = await sendRsvpConfirmationEmail({
       nombre,
       apellido,
       email,
@@ -58,7 +58,11 @@ export async function submitRsvp(formData) {
       necesita_hospedaje,
     });
 
-    return { ok: true };
+    return {
+      ok: true,
+      emailSent: Boolean(emailResult.ok),
+      emailError: emailResult.error || null,
+    };
   } catch (e) {
     return {
       ok: false,

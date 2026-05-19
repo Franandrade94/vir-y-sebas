@@ -4,6 +4,13 @@ import {
   getRsvpEmailSubject,
 } from "@/lib/email/rsvp-email-template";
 
+function formatFromAddress(from) {
+  const trimmed = String(from || "").trim();
+  if (!trimmed) return trimmed;
+  if (trimmed.includes("<")) return trimmed;
+  return `Vir y Seba <${trimmed}>`;
+}
+
 function getSiteUrl() {
   return (
     process.env.NEXT_PUBLIC_SITE_URL ||
@@ -24,11 +31,11 @@ export async function sendRsvpConfirmationEmail({
   necesita_hospedaje,
 }) {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM_EMAIL;
+  const from = formatFromAddress(process.env.RESEND_FROM_EMAIL);
 
   if (!apiKey || !from) {
     console.warn("[rsvp-email] RESEND_API_KEY o RESEND_FROM_EMAIL no configurados; correo omitido.");
-    return { ok: false, skipped: true };
+    return { ok: false, skipped: true, error: "Correo no configurado en el servidor." };
   }
 
   const siteUrl = getSiteUrl();
@@ -52,7 +59,15 @@ export async function sendRsvpConfirmationEmail({
 
     if (error) {
       console.error("[rsvp-email] Resend error:", error);
-      return { ok: false, error: error.message };
+      const msg = error.message || "No se pudo enviar el correo.";
+      if (msg.includes("not verified")) {
+        return {
+          ok: false,
+          error:
+            "El dominio del correo aún no está verificado en Resend. Cuando esté activo, los mails se enviarán solos.",
+        };
+      }
+      return { ok: false, error: msg };
     }
 
     return { ok: true, id: data?.id };
