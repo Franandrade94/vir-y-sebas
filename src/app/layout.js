@@ -24,7 +24,7 @@ export const metadata = {
   title: "Vir & Seba",
   description: "Invitación al casamiento de Vir y Seba",
   icons: {
-    icon: "/assets/image/logo/LogoVyS2.ico",
+    icon: "/logo-tab.ico",
   },
 };
 
