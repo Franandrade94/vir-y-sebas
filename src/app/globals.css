@@ -1061,7 +1061,7 @@ section.inv-section {
 .gift-section {
   background: var(--dark);
   color: var(--cream);
-  padding: 80px 24px;
+  padding: 80px 24px 14px;
   text-align: center;
 }
 
@@ -1667,4 +1667,36 @@ section.inv-section {
   .gallery-section {
     background-image: url("/assets/image/hero/Backmobile.png");
   }
+}
+
+/* ── SITE FOOTER CREDIT ── */
+.site-footer {
+  margin-top: 56px;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0;
+}
+
+.site-footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-cormorant), serif;
+  font-size: 0.95rem;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  color: #c9bba6;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.site-footer-logo {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.site-footer-link:hover {
+  color: var(--gold-light);
 }

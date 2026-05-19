@@ -12,6 +12,7 @@ import {
 } from "@/lib/event-links";
 import ClipLoader from "react-spinners/ClipLoader";
 import { INPUT_LETRAS_PATTERN } from "@/lib/rsvp-helpers";
+import SiteFooter from "@/components/SiteFooter";
 
 const TARGET_ISO = "2026-10-03T18:00:00-03:00";
 const GOOGLE_CALENDAR_ADD_URL = getGoogleCalendarUrl();
@@ -944,6 +945,7 @@ export default function InvitationPage({ sinInvitados = false }) {
           </button>
           <p className="gift-thanks">¡ Gracias !</p>
         </div>
+        <SiteFooter />
       </div>
 
       {/* ── MODAL REGALO ── */}
