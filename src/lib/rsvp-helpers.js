@@ -1,9 +1,10 @@
 /** Válido en HTML pattern (guión al final de la clase, sin escapes). */
 export const INPUT_LETRAS_PATTERN = "[A-Za-zÁÉÍÓÚáéíóúÑñÜü '-]+";
 
-export const RESTRICCION_TIPOS = ["vegano", "vegetariano", "celiaco", "otro"];
+export const RESTRICCION_TIPOS = ["no", "vegano", "vegetariano", "celiaco", "otro"];
 
 export const RESTRICCION_LABELS = {
+  no: "No",
   vegano: "Vegano",
   vegetariano: "Vegetariano",
   celiaco: "Celiaco",

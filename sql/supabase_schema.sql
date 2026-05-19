@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS public.rsvp_responses (
   acompanante_apellido text,
   restriccion_tipo text CHECK (
     restriccion_tipo IS NULL
-    OR restriccion_tipo IN ('vegano', 'vegetariano', 'celiaco', 'otro')
+    OR restriccion_tipo IN ('no', 'vegano', 'vegetariano', 'celiaco', 'otro')
   ),
   restriccion_otro text,
   restricciones text,

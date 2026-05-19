@@ -13,5 +13,5 @@ ALTER TABLE public.rsvp_responses
   ADD CONSTRAINT rsvp_responses_restriccion_tipo_check
   CHECK (
     restriccion_tipo IS NULL
-    OR restriccion_tipo IN ('vegano', 'vegetariano', 'celiaco', 'otro')
+    OR restriccion_tipo IN ('no', 'vegano', 'vegetariano', 'celiaco', 'otro')
   );

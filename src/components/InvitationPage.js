@@ -832,6 +832,7 @@ export default function InvitationPage({ sinInvitados = false }) {
                     aria-label="Restricciones alimentarias"
                   >
                     <option value="">Restricciones alimentarias</option>
+                    <option value="no">No</option>
                     <option value="vegano">Vegano</option>
                     <option value="vegetariano">Vegetariano</option>
                     <option value="celiaco">Celiaco</option>
