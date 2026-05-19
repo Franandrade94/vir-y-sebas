@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { submitRsvp } from "@/app/actions/rsvp-actions";
 import { AiFillHeart } from "react-icons/ai";
 import { createClient as createBrowserSupabaseClient } from "@/lib/supabase/client";
 import {
-  APPLE_CALENDAR_ICS_PATH,
-  getGoogleCalendarUrl,
+  CALENDAR_ICS_PATH,
+  getCalendarIcsUrl,
   VENUE_MAPS_URL,
 } from "@/lib/event-links";
 import ClipLoader from "react-spinners/ClipLoader";
 
 const TARGET_ISO = "2026-10-03T18:00:00-03:00";
-const GOOGLE_CALENDAR_ADD_URL = getGoogleCalendarUrl();
 
 const GALLERY_IMAGES_FALLBACK = [];
 
@@ -457,6 +456,24 @@ export default function Home() {
 
   const [rsvpPending, setRsvpPending] = useState(false);
   const [emailNotice, setEmailNotice] = useState(null);
+  const [calendarIcsUrl, setCalendarIcsUrl] = useState(CALENDAR_ICS_PATH);
+  const rsvpFormRef = useRef(null);
+
+  useEffect(() => {
+    setCalendarIcsUrl(getCalendarIcsUrl(window.location.origin));
+  }, []);
+
+  useEffect(() => {
+    const onPageShow = (event) => {
+      if (event.persisted) {
+        setSubmitted(false);
+        setEmailNotice(null);
+        rsvpFormRef.current?.reset();
+      }
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -503,6 +520,7 @@ export default function Home() {
       alert(result.error || "No se pudo enviar. Probá de nuevo.");
       return;
     }
+    e.currentTarget.reset();
     if (!result.emailSent) {
       setEmailNotice(
         result.emailError ||
@@ -548,15 +566,13 @@ export default function Home() {
         >
           <a
             className="btn btn-calendar"
-            href={GOOGLE_CALENDAR_ADD_URL}
-            target="_blank"
-            rel="noreferrer"
+            href={calendarIcsUrl}
           >
             Agendar con Google
           </a>
           <a
             className="btn btn-calendar"
-            href={APPLE_CALENDAR_ICS_PATH}
+            href={calendarIcsUrl}
           >
             Agendar con iPhone
           </a>
@@ -637,7 +653,7 @@ export default function Home() {
           )}
 
           {!submitted ? (
-            <form onSubmit={onSubmit} className="rsvp-form">
+            <form ref={rsvpFormRef} onSubmit={onSubmit} className="rsvp-form">
               <div className="form-grid">
                 <div className="form-field">
                   <input

@@ -14,20 +14,21 @@ export const HOTEL_DISCOUNT_CODE = "BodaVir&Sebas";
 export const VENUE_NAME = "La Herencia";
 export const VENUE_ADDRESS = "Saravi 1799, La Lonja, Pilar, Buenos Aires";
 
-export function getGoogleCalendarUrl() {
-  const q = new URLSearchParams({
-    action: "TEMPLATE",
-    text: "Casamiento Vir y Seba",
-    dates: GCAL_DATES_UTC,
-    details: "Vir y Seba — La Herencia, La Lonja, Pilar.",
-    location: `${VENUE_NAME}, ${VENUE_ADDRESS}`,
-  });
-  return `https://calendar.google.com/calendar/render?${q.toString()}`;
+export const CALENDAR_ICS_PATH = "/calendar/casamiento-vir-seba-2026.ics";
+
+/** @deprecated alias */
+export const APPLE_CALENDAR_ICS_PATH = CALENDAR_ICS_PATH;
+
+/** ICS con recordatorios (00:00 del 3/oct y 1 día antes). Misma URL para Google/Android e iPhone. */
+export function getCalendarIcsUrl(siteUrl) {
+  const base = (siteUrl || "").replace(/\/$/, "");
+  return base ? `${base}${CALENDAR_ICS_PATH}` : CALENDAR_ICS_PATH;
 }
 
-export const APPLE_CALENDAR_ICS_PATH = "/calendar/casamiento-vir-seba-2026.ics";
+export function getGoogleCalendarUrl(siteUrl) {
+  return getCalendarIcsUrl(siteUrl);
+}
 
 export function getAppleCalendarUrl(siteUrl) {
-  const base = (siteUrl || "").replace(/\/$/, "");
-  return `${base}${APPLE_CALENDAR_ICS_PATH}`;
+  return getCalendarIcsUrl(siteUrl);
 }
