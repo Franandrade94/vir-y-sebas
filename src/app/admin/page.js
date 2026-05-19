@@ -22,7 +22,7 @@ export default function AdminLoginPage() {
     <div className="admin-page admin-login">
       <div className="admin-card">
         <h1 className="admin-title">Panel admin</h1>
-        <p className="admin-hint">Ingresá la clave configurada en Supabase.</p>
+        <p className="admin-hint">Ingresá la clave de Administrador</p>
         <Suspense fallback={<LoginFormFallback />}>
           <AdminLoginForm />
         </Suspense>
