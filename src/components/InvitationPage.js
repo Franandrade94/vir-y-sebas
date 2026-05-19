@@ -11,6 +11,7 @@ import {
   VENUE_MAPS_URL,
 } from "@/lib/event-links";
 import ClipLoader from "react-spinners/ClipLoader";
+import { INPUT_LETRAS_PATTERN } from "@/lib/rsvp-helpers";
 
 const TARGET_ISO = "2026-10-03T18:00:00-03:00";
 const GOOGLE_CALENDAR_ADD_URL = getGoogleCalendarUrl();
@@ -483,7 +484,9 @@ export default function InvitationPage({ sinInvitados = false }) {
 
   async function onSubmit(e) {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+    const formEl = rsvpFormRef.current;
+    if (!formEl) return;
+    const formData = new FormData(formEl);
     const nombre = String(formData.get("nombre") || "").trim();
     const apellido = String(formData.get("apellido") || "").trim();
     const email = String(formData.get("email") || "").trim();
@@ -548,15 +551,16 @@ export default function InvitationPage({ sinInvitados = false }) {
       alert(result.error || "No se pudo enviar. Probá de nuevo.");
       return;
     }
-    e.currentTarget.reset();
+
+    formEl.reset();
     setVaAcompanado("");
     setRestriccionTipo("");
-    if (!result.emailSent) {
-      setEmailNotice(
-        result.emailError ||
-          "Guardamos tu confirmación, pero no pudimos enviar el correo. Revisá la carpeta de spam o escribinos."
-      );
-    }
+    setEmailNotice(
+      result.emailSent
+        ? null
+        : result.emailError ||
+            "Guardamos tu confirmación, pero no pudimos enviar el correo. Revisá la carpeta de spam o escribinos."
+    );
     setSubmitted(true);
   }
 
@@ -699,7 +703,7 @@ export default function InvitationPage({ sinInvitados = false }) {
                     required
                     autoComplete="given-name"
                     inputMode="text"
-                    pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü '\-]+"
+                    pattern={INPUT_LETRAS_PATTERN}
                     title="Solo letras"
                   />
                 </div>
@@ -711,7 +715,7 @@ export default function InvitationPage({ sinInvitados = false }) {
                     required
                     autoComplete="family-name"
                     inputMode="text"
-                    pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü '\-]+"
+                    pattern={INPUT_LETRAS_PATTERN}
                     title="Solo letras"
                   />
                 </div>
@@ -764,7 +768,7 @@ export default function InvitationPage({ sinInvitados = false }) {
                           placeholder="Nombre del acompañante *"
                           required
                           inputMode="text"
-                          pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü '\\-]+"
+                          pattern={INPUT_LETRAS_PATTERN}
                           title="Solo letras"
                         />
                       </div>
@@ -775,7 +779,7 @@ export default function InvitationPage({ sinInvitados = false }) {
                           placeholder="Apellido del acompañante *"
                           required
                           inputMode="text"
-                          pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü '\\-]+"
+                          pattern={INPUT_LETRAS_PATTERN}
                           title="Solo letras"
                         />
                       </div>
