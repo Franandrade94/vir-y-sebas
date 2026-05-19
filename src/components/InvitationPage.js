@@ -18,6 +18,7 @@ const GOOGLE_CALENDAR_ADD_URL = getGoogleCalendarUrl();
 
 const GALLERY_IMAGES_FALLBACK = [];
 
+
 function pad2(n) {
   return String(n).padStart(2, "0");
 }
