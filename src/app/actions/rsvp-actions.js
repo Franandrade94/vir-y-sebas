@@ -9,7 +9,11 @@ export async function submitRsvp(formData) {
   const nombre = String(formData.get("nombre") || "").trim();
   const apellido = String(formData.get("apellido") || "").trim();
   const email = String(formData.get("email") || "").trim();
-  const acompanado = String(formData.get("acompanado") || "").trim();
+  const rsvpVariant = String(formData.get("rsvp_variant") || "").trim();
+  const sinInvitados = rsvpVariant === "sin_invitados";
+  const acompanado = sinInvitados
+    ? "no"
+    : String(formData.get("acompanado") || "").trim();
   const necesita_transporte = String(formData.get("necesita_transporte") || "").trim();
   const necesita_hospedaje = String(formData.get("necesita_hospedaje") || "").trim();
   const restricciones = String(formData.get("restricciones") || "").trim();
@@ -23,7 +27,7 @@ export async function submitRsvp(formData) {
   if (!email || !emailOk(email)) {
     return { ok: false, error: "Revisá el correo electrónico." };
   }
-  if (acompanado !== "si" && acompanado !== "no") {
+  if (!sinInvitados && acompanado !== "si" && acompanado !== "no") {
     return { ok: false, error: "Indicá si vas acompañado." };
   }
   if (necesita_transporte !== "si" && necesita_transporte !== "no") {
