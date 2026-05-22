@@ -2,11 +2,15 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { verifyAdminSession } from "@/lib/admin-session";
 import { createAdminClient } from "@/lib/supabase/service";
-import { logoutAdmin } from "@/app/actions/admin-actions";
+import { AdminAuthGate } from "@/app/admin/admin-auth-gate";
+import { AdminLogoutButton } from "@/app/admin/admin-logout-button";
 import {
   formatAcompananteDisplay,
+  formatRestriccionAplicaDisplay,
   formatRestriccionDisplay,
 } from "@/lib/rsvp-helpers";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Confirmaciones · Admin",
@@ -48,6 +52,7 @@ export default async function AdminDashboardPage() {
   }
 
   return (
+    <AdminAuthGate>
     <div className="admin-page admin-dashboard">
       <header className="admin-dash-header">
         <h1 className="admin-title">Confirmaciones de asistencia</h1>
@@ -55,11 +60,7 @@ export default async function AdminDashboardPage() {
           <Link className="admin-link" href="/">
             Ver sitio
           </Link>
-          <form action={logoutAdmin}>
-            <button className="admin-btn admin-btn-outline" type="submit">
-              Salir
-            </button>
-          </form>
+          <AdminLogoutButton />
         </div>
       </header>
 
@@ -80,23 +81,26 @@ export default async function AdminDashboardPage() {
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Invitado</th>
-                <th>Email</th>
+                <th className="admin-col-invitado">Invitado</th>
+                <th className="admin-col-email">Email</th>
                 <th>¿Acompañado?</th>
                 <th>Acompañante</th>
                 <th>Transporte</th>
                 <th>Hospedaje</th>
                 <th>Restricciones</th>
+                <th>Restricción para</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id}>
-                  <td>
+                  <td className="admin-col-invitado">
                     {r.nombre} {r.apellido}
                   </td>
-                  <td>{r.email}</td>
-                  <td>{r.acompanado === "si" ? "Sí" : "No"}</td>
+                  <td className="admin-col-email admin-td-wrap">{r.email}</td>
+                  <td className="admin-td-muted">
+                    {r.acompanado === "si" ? "Sí" : "No"}
+                  </td>
                   <td>
                     {formatAcompananteDisplay(
                       r.acompanado,
@@ -104,13 +108,22 @@ export default async function AdminDashboardPage() {
                       r.acompanante_apellido
                     )}
                   </td>
-                  <td>{r.necesita_transporte === "si" ? "Sí" : "No"}</td>
-                  <td>{r.necesita_hospedaje === "si" ? "Sí" : "No"}</td>
+                  <td className="admin-td-muted">
+                    {r.necesita_transporte === "si" ? "Sí" : "No"}
+                  </td>
+                  <td className="admin-td-muted">
+                    {r.necesita_hospedaje === "si" ? "Sí" : "No"}
+                  </td>
                   <td className="admin-td-wrap">
                     {formatRestriccionDisplay(
                       r.restriccion_tipo,
                       r.restriccion_otro,
-                      r.restricciones,
+                      r.restricciones
+                    )}
+                  </td>
+                  <td className="admin-td-muted">
+                    {formatRestriccionAplicaDisplay(
+                      r.restriccion_tipo,
                       r.restriccion_aplica
                     )}
                   </td>
@@ -121,6 +134,7 @@ export default async function AdminDashboardPage() {
         </div>
       )}
     </div>
+    </AdminAuthGate>
   );
 }
 

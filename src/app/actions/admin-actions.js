@@ -29,14 +29,13 @@ export async function loginAdmin(_prevState, formData) {
     }
 
     await setAdminSession();
+    return { ok: true, error: null };
   } catch (e) {
     return {
       ok: false,
       error: e instanceof Error ? e.message : "Error al iniciar sesión.",
     };
   }
-
-  redirect("/admin/dashboard");
 }
 
 export async function logoutAdmin() {

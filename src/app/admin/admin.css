@@ -229,8 +229,22 @@
 }
 
 @media (max-width: 700px) {
-  .admin-table th:nth-child(1),
-  .admin-table td:nth-child(1) {
+  .admin-table .admin-col-email {
     display: none;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+  }
+
+  .admin-table th {
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+  }
+
+  .admin-col-invitado {
+    min-width: 88px;
   }
 }

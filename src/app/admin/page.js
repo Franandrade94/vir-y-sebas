@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { AdminLoginRedirect } from "./admin-login-redirect";
 import { AdminLoginForm } from "./login-form";
 
 function LoginFormFallback() {
@@ -23,6 +24,7 @@ export default function AdminLoginPage() {
       <div className="admin-card">
         <h1 className="admin-title">Panel admin</h1>
         <p className="admin-hint">Ingresá la clave de Administrador</p>
+        <AdminLoginRedirect />
         <Suspense fallback={<LoginFormFallback />}>
           <AdminLoginForm />
         </Suspense>

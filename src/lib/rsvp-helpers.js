@@ -84,21 +84,23 @@ export function validateRsvpFields({
   return errors;
 }
 
-export function formatRestriccionDisplay(tipo, otro, legacyRestricciones, aplica) {
+export function formatRestriccionDisplay(tipo, otro, legacyRestricciones) {
   if (tipo && RESTRICCION_LABELS[tipo]) {
-    let base;
     if (tipo === "otro") {
-      base = otro?.trim() ? `Otro: ${otro.trim()}` : "Otro";
-    } else {
-      base = RESTRICCION_LABELS[tipo];
+      return otro?.trim() ? `Otro: ${otro.trim()}` : "Otro";
     }
-    if (tipo !== "no" && aplica && RESTRICCION_APLICA_LABELS[aplica]) {
-      return `${base} (${RESTRICCION_APLICA_LABELS[aplica]})`;
-    }
-    return base;
+    return RESTRICCION_LABELS[tipo];
   }
   const legacy = legacyRestricciones?.trim();
   return legacy || "—";
+}
+
+export function formatRestriccionAplicaDisplay(tipo, aplica) {
+  if (!tipo || tipo === "no") return "—";
+  if (aplica && RESTRICCION_APLICA_LABELS[aplica]) {
+    return RESTRICCION_APLICA_LABELS[aplica];
+  }
+  return "—";
 }
 
 export function formatAcompananteDisplay(acompanado, nombre, apellido) {
