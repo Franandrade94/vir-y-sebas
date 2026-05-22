@@ -556,7 +556,7 @@ section.inv-section {
   padding: 14px 16px;
   font-family: var(--font-lato), sans-serif;
   font-size: 0.85rem;
-  color: var(--text);
+  color: #a8998a;
   outline: none;
   transition: border-color 0.3s;
   appearance: none;
@@ -569,8 +569,23 @@ section.inv-section {
 }
 
 .form-field input:focus,
-.form-field textarea:focus {
+.form-field textarea:focus,
+.form-field select:focus {
   border-color: var(--gold);
+}
+
+.form-field--error input,
+.form-field--error textarea,
+.form-field--error select {
+  border-color: #c0392b;
+}
+
+.form-radio-group--error .form-radio-legend {
+  color: #c0392b;
+}
+
+.form-radio-group--error .form-radio-option input[type="radio"] {
+  border-color: #c0392b;
 }
 
 .form-field textarea {
@@ -581,10 +596,10 @@ section.inv-section {
 .form-field select,
 .form-select {
   cursor: pointer;
-  color: var(--text);
+  color: #a8998a;
 }
 
-.form-field select option[value=""] {
+.form-field select option {
   color: #a8998a;
 }
 

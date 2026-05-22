@@ -22,7 +22,7 @@ export default async function AdminDashboardPage() {
   const { data: rows, error } = await supabase
     .from("rsvp_responses")
     .select(
-      "id,nombre,apellido,email,acompanado,acompanante_nombre,acompanante_apellido,necesita_transporte,necesita_hospedaje,restriccion_tipo,restriccion_otro,restricciones,created_at"
+      "id,nombre,apellido,email,acompanado,acompanante_nombre,acompanante_apellido,necesita_transporte,necesita_hospedaje,restriccion_tipo,restriccion_otro,restriccion_aplica,restricciones,created_at"
     )
     .order("created_at", { ascending: false });
 
@@ -81,7 +81,8 @@ export default async function AdminDashboardPage() {
                     {formatRestriccionDisplay(
                       r.restriccion_tipo,
                       r.restriccion_otro,
-                      r.restricciones
+                      r.restricciones,
+                      r.restriccion_aplica
                     )}
                   </td>
                 </tr>

@@ -11,7 +11,7 @@ import {
   VENUE_MAPS_URL,
 } from "@/lib/event-links";
 import ClipLoader from "react-spinners/ClipLoader";
-import { INPUT_LETRAS_PATTERN } from "@/lib/rsvp-helpers";
+import { INPUT_LETRAS_PATTERN, validateRsvpFields } from "@/lib/rsvp-helpers";
 import SiteFooter from "@/components/SiteFooter";
 
 const TARGET_ISO = "2026-10-03T18:00:00-03:00";
@@ -464,7 +464,25 @@ export default function InvitationPage({ sinInvitados = false }) {
   const [calendarIcsUrl, setCalendarIcsUrl] = useState(CALENDAR_ICS_PATH);
   const [vaAcompanado, setVaAcompanado] = useState("");
   const [restriccionTipo, setRestriccionTipo] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const rsvpFormRef = useRef(null);
+
+  const clearFieldError = (key) => {
+    setFieldErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
+  const fieldErrorClass = (key, base = "form-field") =>
+    fieldErrors[key] ? `${base} form-field--error` : base;
+
+  const radioGroupClass = (key) =>
+    fieldErrors[key]
+      ? "form-radio-group form-full form-radio-group--error"
+      : "form-radio-group form-full";
 
   useEffect(() => {
     setCalendarIcsUrl(getCalendarIcsUrl(window.location.origin));
@@ -477,6 +495,7 @@ export default function InvitationPage({ sinInvitados = false }) {
         setEmailNotice(null);
         setVaAcompanado("");
         setRestriccionTipo("");
+        setFieldErrors({});
         rsvpFormRef.current?.reset();
       }
     };
@@ -489,62 +508,48 @@ export default function InvitationPage({ sinInvitados = false }) {
     const formEl = rsvpFormRef.current;
     if (!formEl) return;
     const formData = new FormData(formEl);
-    const nombre = String(formData.get("nombre") || "").trim();
-    const apellido = String(formData.get("apellido") || "").trim();
-    const email = String(formData.get("email") || "").trim();
-    const acompanado = formData.get("acompanado");
-    const necesita_transporte = formData.get("necesita_transporte");
-    const necesita_hospedaje = formData.get("necesita_hospedaje");
 
-    const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s'-]+$/;
-    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-    if (!nombre || !soloLetras.test(nombre)) {
-      alert("El nombre solo puede incluir letras (y espacio o guión si hace falta).");
-      return;
-    }
-    if (!apellido || !soloLetras.test(apellido)) {
-      alert("El apellido solo puede incluir letras (y espacio o guión si hace falta).");
-      return;
-    }
-    if (!email || !emailOk) {
-      alert("Ingresá un correo electrónico válido.");
-      return;
-    }
-    if (!sinInvitados && !acompanado) {
-      alert("Indicá si vas acompañado o no.");
-      return;
-    }
     if (sinInvitados) {
       formData.set("rsvp_variant", "sin_invitados");
       formData.set("acompanado", "no");
     }
-    if (!necesita_transporte) {
-      alert("Indicá si necesitás transporte.");
-      return;
-    }
-    if (!necesita_hospedaje) {
-      alert("Indicá si necesitás hospedaje.");
-      return;
-    }
+
+    const acompanado = sinInvitados ? "no" : String(formData.get("acompanado") || "").trim();
     const restriccionTipoVal = String(formData.get("restriccion_tipo") || "").trim();
-    const restriccionOtro = String(formData.get("restriccion_otro") || "").trim();
-    if (restriccionTipoVal === "otro" && !restriccionOtro) {
-      alert("Completá la restricción alimentaria.");
+
+    if (
+      restriccionTipoVal &&
+      restriccionTipoVal !== "no" &&
+      (sinInvitados || acompanado !== "si")
+    ) {
+      formData.set("restriccion_aplica", "yo");
+    }
+
+    const errors = validateRsvpFields({
+      nombre: formData.get("nombre"),
+      apellido: formData.get("apellido"),
+      email: formData.get("email"),
+      sinInvitados,
+      acompanado,
+      acompananteNombre: formData.get("acompanante_nombre"),
+      acompananteApellido: formData.get("acompanante_apellido"),
+      necesita_transporte: formData.get("necesita_transporte"),
+      necesita_hospedaje: formData.get("necesita_hospedaje"),
+      restriccionTipo: restriccionTipoVal,
+      restriccionOtro: formData.get("restriccion_otro"),
+      restriccionAplica: formData.get("restriccion_aplica"),
+    });
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      const firstInvalid = formEl.querySelector(
+        ".form-field--error input, .form-field--error select, .form-field--error textarea, .form-radio-group--error"
+      );
+      firstInvalid?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-    if (!sinInvitados && acompanado === "si") {
-      const aNom = String(formData.get("acompanante_nombre") || "").trim();
-      const aApe = String(formData.get("acompanante_apellido") || "").trim();
-      if (!aNom || !soloLetras.test(aNom)) {
-        alert("Revisá el nombre del acompañante (solo letras).");
-        return;
-      }
-      if (!aApe || !soloLetras.test(aApe)) {
-        alert("Revisá el apellido del acompañante (solo letras).");
-        return;
-      }
-    }
+
+    setFieldErrors({});
     setRsvpPending(true);
     setEmailNotice(null);
     const result = await submitRsvp(formData);
@@ -557,6 +562,7 @@ export default function InvitationPage({ sinInvitados = false }) {
     formEl.reset();
     setVaAcompanado("");
     setRestriccionTipo("");
+    setFieldErrors({});
     setEmailNotice(
       result.emailSent
         ? null
@@ -697,7 +703,7 @@ export default function InvitationPage({ sinInvitados = false }) {
               ) : null}
               {sinInvitados ? <input type="hidden" name="acompanado" value="no" /> : null}
               <div className="form-grid">
-                <div className="form-field">
+                <div className={fieldErrorClass("nombre")}>
                   <input
                     name="nombre"
                     type="text"
@@ -707,9 +713,10 @@ export default function InvitationPage({ sinInvitados = false }) {
                     inputMode="text"
                     pattern={INPUT_LETRAS_PATTERN}
                     title="Solo letras"
+                    onInput={() => clearFieldError("nombre")}
                   />
                 </div>
-                <div className="form-field">
+                <div className={fieldErrorClass("apellido")}>
                   <input
                     name="apellido"
                     type="text"
@@ -719,9 +726,10 @@ export default function InvitationPage({ sinInvitados = false }) {
                     inputMode="text"
                     pattern={INPUT_LETRAS_PATTERN}
                     title="Solo letras"
+                    onInput={() => clearFieldError("apellido")}
                   />
                 </div>
-                <div className="form-field form-full">
+                <div className={fieldErrorClass("email", "form-field form-full")}>
                   <input
                     name="email"
                     type="email"
@@ -729,11 +737,12 @@ export default function InvitationPage({ sinInvitados = false }) {
                     autoComplete="email"
                     placeholder="Email *"
                     required
+                    onInput={() => clearFieldError("email")}
                   />
                 </div>
                 {!sinInvitados ? (
-                  <div className="form-radio-group form-full">
-                    <span className="form-radio-legend">¿Voy acompañado?</span>
+                  <div className={radioGroupClass("acompanado")}>
+                    <span className="form-radio-legend">¿Voy acompañado? *</span>
                     <div className="form-radio-options">
                       <label className="form-radio-option">
                         <input
@@ -742,7 +751,10 @@ export default function InvitationPage({ sinInvitados = false }) {
                           value="si"
                           required
                           checked={vaAcompanado === "si"}
-                          onChange={() => setVaAcompanado("si")}
+                          onChange={() => {
+                            setVaAcompanado("si");
+                            clearFieldError("acompanado");
+                          }}
                         />
                         <span>Sí</span>
                       </label>
@@ -751,8 +763,13 @@ export default function InvitationPage({ sinInvitados = false }) {
                           type="radio"
                           name="acompanado"
                           value="no"
+                          required
                           checked={vaAcompanado === "no"}
-                          onChange={() => setVaAcompanado("no")}
+                          onChange={() => {
+                            setVaAcompanado("no");
+                            clearFieldError("acompanado");
+                            clearFieldError("restriccion_aplica");
+                          }}
                         />
                         <span>No</span>
                       </label>
@@ -763,7 +780,7 @@ export default function InvitationPage({ sinInvitados = false }) {
                   <div className="form-companion form-full">
                     <p className="form-companion-legend">Datos del acompañante</p>
                     <div className="form-companion-grid">
-                      <div className="form-field">
+                      <div className={fieldErrorClass("acompanante_nombre")}>
                         <input
                           name="acompanante_nombre"
                           type="text"
@@ -772,9 +789,10 @@ export default function InvitationPage({ sinInvitados = false }) {
                           inputMode="text"
                           pattern={INPUT_LETRAS_PATTERN}
                           title="Solo letras"
+                          onInput={() => clearFieldError("acompanante_nombre")}
                         />
                       </div>
-                      <div className="form-field">
+                      <div className={fieldErrorClass("acompanante_apellido")}>
                         <input
                           name="acompanante_apellido"
                           type="text"
@@ -783,13 +801,14 @@ export default function InvitationPage({ sinInvitados = false }) {
                           inputMode="text"
                           pattern={INPUT_LETRAS_PATTERN}
                           title="Solo letras"
+                          onInput={() => clearFieldError("acompanante_apellido")}
                         />
                       </div>
                     </div>
                   </div>
                 ) : null}
-                <div className="form-radio-group form-full">
-                  <span className="form-radio-legend">¿Necesitás transporte?</span>
+                <div className={radioGroupClass("necesita_transporte")}>
+                  <span className="form-radio-legend">¿Necesitás transporte? *</span>
                   <div className="form-radio-options">
                     <label className="form-radio-option">
                       <input
@@ -797,17 +816,24 @@ export default function InvitationPage({ sinInvitados = false }) {
                         name="necesita_transporte"
                         value="si"
                         required
+                        onChange={() => clearFieldError("necesita_transporte")}
                       />
                       <span>Sí</span>
                     </label>
                     <label className="form-radio-option">
-                      <input type="radio" name="necesita_transporte" value="no" />
+                      <input
+                        type="radio"
+                        name="necesita_transporte"
+                        value="no"
+                        required
+                        onChange={() => clearFieldError("necesita_transporte")}
+                      />
                       <span>No</span>
                     </label>
                   </div>
                 </div>
-                <div className="form-radio-group form-full">
-                  <span className="form-radio-legend">¿Necesitás hospedaje?</span>
+                <div className={radioGroupClass("necesita_hospedaje")}>
+                  <span className="form-radio-legend">¿Necesitás hospedaje? *</span>
                   <div className="form-radio-options">
                     <label className="form-radio-option">
                       <input
@@ -815,24 +841,40 @@ export default function InvitationPage({ sinInvitados = false }) {
                         name="necesita_hospedaje"
                         value="si"
                         required
+                        onChange={() => clearFieldError("necesita_hospedaje")}
                       />
                       <span>Sí</span>
                     </label>
                     <label className="form-radio-option">
-                      <input type="radio" name="necesita_hospedaje" value="no" />
+                      <input
+                        type="radio"
+                        name="necesita_hospedaje"
+                        value="no"
+                        required
+                        onChange={() => clearFieldError("necesita_hospedaje")}
+                      />
                       <span>No</span>
                     </label>
                   </div>
                 </div>
-                <div className="form-field form-full">
+                <div className={fieldErrorClass("restriccion_tipo", "form-field form-full")}>
                   <select
                     name="restriccion_tipo"
                     value={restriccionTipo}
-                    onChange={(e) => setRestriccionTipo(e.target.value)}
+                    required
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setRestriccionTipo(v);
+                      clearFieldError("restriccion_tipo");
+                      if (v === "no" || !v) {
+                        clearFieldError("restriccion_otro");
+                        clearFieldError("restriccion_aplica");
+                      }
+                    }}
                     className="form-select"
                     aria-label="Restricciones alimentarias"
                   >
-                    <option value="">Restricciones alimentarias</option>
+                    <option value="">Restricciones alimentarias *</option>
                     <option value="no">No</option>
                     <option value="vegano">Vegano</option>
                     <option value="vegetariano">Vegetariano</option>
@@ -840,15 +882,61 @@ export default function InvitationPage({ sinInvitados = false }) {
                     <option value="otro">Otro</option>
                   </select>
                 </div>
-                {restriccionTipo === "otro" ? (
-                  <div className="form-field form-full">
-                    <input
-                      name="restriccion_otro"
-                      type="text"
-                      placeholder="Especificá la restricción *"
-                      required
-                    />
-                  </div>
+                {restriccionTipo && restriccionTipo !== "no" ? (
+                  <>
+                    {restriccionTipo === "otro" ? (
+                      <div className={fieldErrorClass("restriccion_otro", "form-field form-full")}>
+                        <input
+                          name="restriccion_otro"
+                          type="text"
+                          placeholder="Especificá la restricción *"
+                          required
+                          onInput={() => clearFieldError("restriccion_otro")}
+                        />
+                      </div>
+                    ) : null}
+                    {!sinInvitados && vaAcompanado === "si" ? (
+                      <div className={radioGroupClass("restriccion_aplica")}>
+                        <span className="form-radio-legend">
+                          ¿La restricción alimentaria es para…? *
+                        </span>
+                        <div className="form-radio-options">
+                          <label className="form-radio-option">
+                            <input
+                              type="radio"
+                              name="restriccion_aplica"
+                              value="ambos"
+                              required
+                              onChange={() => clearFieldError("restriccion_aplica")}
+                            />
+                            <span>Los dos</span>
+                          </label>
+                          <label className="form-radio-option">
+                            <input
+                              type="radio"
+                              name="restriccion_aplica"
+                              value="yo"
+                              required
+                              onChange={() => clearFieldError("restriccion_aplica")}
+                            />
+                            <span>Yo</span>
+                          </label>
+                          <label className="form-radio-option">
+                            <input
+                              type="radio"
+                              name="restriccion_aplica"
+                              value="invitado"
+                              required
+                              onChange={() => clearFieldError("restriccion_aplica")}
+                            />
+                            <span>Invitado</span>
+                          </label>
+                        </div>
+                      </div>
+                    ) : (
+                      <input type="hidden" name="restriccion_aplica" value="yo" />
+                    )}
+                  </>
                 ) : null}
               </div>
               <button className="btn-submit" type="submit" disabled={rsvpPending}>

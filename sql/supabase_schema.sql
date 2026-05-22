@@ -23,6 +23,10 @@ CREATE TABLE IF NOT EXISTS public.rsvp_responses (
     OR restriccion_tipo IN ('no', 'vegano', 'vegetariano', 'celiaco', 'otro')
   ),
   restriccion_otro text,
+  restriccion_aplica text CHECK (
+    restriccion_aplica IS NULL
+    OR restriccion_aplica IN ('ambos', 'yo', 'invitado')
+  ),
   restricciones text,
   created_at timestamptz NOT NULL DEFAULT now()
 );

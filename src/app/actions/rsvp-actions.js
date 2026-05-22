@@ -1,10 +1,11 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { RESTRICCION_TIPOS } from "@/lib/rsvp-helpers";
-
-const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s'-]+$/;
-const emailOk = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+import {
+  RESTRICCION_APLICA,
+  RESTRICCION_TIPOS,
+  validateRsvpFields,
+} from "@/lib/rsvp-helpers";
 
 export async function submitRsvp(formData) {
   const nombre = String(formData.get("nombre") || "").trim();
@@ -21,38 +22,39 @@ export async function submitRsvp(formData) {
   const necesita_hospedaje = String(formData.get("necesita_hospedaje") || "").trim();
   const restriccionTipo = String(formData.get("restriccion_tipo") || "").trim();
   const restriccionOtro = String(formData.get("restriccion_otro") || "").trim();
+  let restriccionAplica = String(formData.get("restriccion_aplica") || "").trim();
 
-  if (!nombre || !soloLetras.test(nombre)) {
-    return { ok: false, error: "Revisá el nombre (solo letras)." };
+  const errors = validateRsvpFields({
+    nombre,
+    apellido,
+    email,
+    sinInvitados,
+    acompanado,
+    acompananteNombre,
+    acompananteApellido,
+    necesita_transporte,
+    necesita_hospedaje,
+    restriccionTipo,
+    restriccionOtro,
+    restriccionAplica,
+  });
+
+  if (Object.keys(errors).length > 0) {
+    return { ok: false, error: "Completá todos los campos marcados." };
   }
-  if (!apellido || !soloLetras.test(apellido)) {
-    return { ok: false, error: "Revisá el apellido (solo letras)." };
+
+  if (restriccionTipo === "no" || !restriccionTipo) {
+    restriccionAplica = null;
+  } else if (sinInvitados || acompanado !== "si") {
+    restriccionAplica = "yo";
   }
-  if (!email || !emailOk(email)) {
-    return { ok: false, error: "Revisá el correo electrónico." };
+
+  if (restriccionAplica && !RESTRICCION_APLICA.includes(restriccionAplica)) {
+    return { ok: false, error: "Indicá para quién es la restricción alimentaria." };
   }
-  if (!sinInvitados && acompanado !== "si" && acompanado !== "no") {
-    return { ok: false, error: "Indicá si vas acompañado." };
-  }
-  if (acompanado === "si") {
-    if (!acompananteNombre || !soloLetras.test(acompananteNombre)) {
-      return { ok: false, error: "Revisá el nombre del acompañante (solo letras)." };
-    }
-    if (!acompananteApellido || !soloLetras.test(acompananteApellido)) {
-      return { ok: false, error: "Revisá el apellido del acompañante (solo letras)." };
-    }
-  }
-  if (necesita_transporte !== "si" && necesita_transporte !== "no") {
-    return { ok: false, error: "Indicá si necesitás transporte." };
-  }
-  if (necesita_hospedaje !== "si" && necesita_hospedaje !== "no") {
-    return { ok: false, error: "Indicá si necesitás hospedaje." };
-  }
+
   if (restriccionTipo && !RESTRICCION_TIPOS.includes(restriccionTipo)) {
     return { ok: false, error: "Revisá la restricción alimentaria." };
-  }
-  if (restriccionTipo === "otro" && !restriccionOtro.trim()) {
-    return { ok: false, error: "Completá la restricción alimentaria (otro)." };
   }
 
   try {
@@ -66,8 +68,10 @@ export async function submitRsvp(formData) {
       acompanante_apellido: acompanado === "si" ? acompananteApellido : null,
       necesita_transporte,
       necesita_hospedaje,
-      restriccion_tipo: restriccionTipo || null,
+      restriccion_tipo: restriccionTipo,
       restriccion_otro: restriccionTipo === "otro" ? restriccionOtro : null,
+      restriccion_aplica:
+        restriccionTipo && restriccionTipo !== "no" ? restriccionAplica : null,
       restricciones: null,
     });
 
