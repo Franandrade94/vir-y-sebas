@@ -19,12 +19,33 @@ export default async function AdminDashboardPage() {
   }
 
   const supabase = createAdminClient();
-  const { data: rows, error } = await supabase
+  const selectFull =
+    "id,nombre,apellido,email,acompanado,acompanante_nombre,acompanante_apellido,necesita_transporte,necesita_hospedaje,restriccion_tipo,restriccion_otro,restriccion_aplica,restricciones,created_at";
+  const selectLegacy =
+    "id,nombre,apellido,email,acompanado,acompanante_nombre,acompanante_apellido,necesita_transporte,necesita_hospedaje,restriccion_tipo,restriccion_otro,restricciones,created_at";
+
+  let rows = null;
+  let error = null;
+  let needsMigration = false;
+
+  const full = await supabase
     .from("rsvp_responses")
-    .select(
-      "id,nombre,apellido,email,acompanado,acompanante_nombre,acompanante_apellido,necesita_transporte,necesita_hospedaje,restriccion_tipo,restriccion_otro,restriccion_aplica,restricciones,created_at"
-    )
+    .select(selectFull)
     .order("created_at", { ascending: false });
+
+  if (!full.error) {
+    rows = full.data;
+  } else if (full.error.message?.includes("restriccion_aplica")) {
+    needsMigration = true;
+    const legacy = await supabase
+      .from("rsvp_responses")
+      .select(selectLegacy)
+      .order("created_at", { ascending: false });
+    rows = legacy.data;
+    error = legacy.error;
+  } else {
+    error = full.error;
+  }
 
   return (
     <div className="admin-page admin-dashboard">
@@ -41,6 +62,14 @@ export default async function AdminDashboardPage() {
           </form>
         </div>
       </header>
+
+      {needsMigration ? (
+        <p className="admin-error" role="status">
+          Falta la columna <code>restriccion_aplica</code> en Supabase. Ejecutá el script{" "}
+          <code>sql/rsvp_add_restriccion_aplica.sql</code> en SQL Editor para ver “Los
+          dos / Yo / Invitado” y que el formulario guarde bien.
+        </p>
+      ) : null}
 
       {error ? (
         <p className="admin-error">Error al cargar: {error.message}</p>
